@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#usage: ./docker_run <image-name/id> <additional docker args>
+#run container locally with gcp credentials
+
+#inject gcp service account key into docker image
+#and set GOOGLE_APPLICATION_CREDENTIALS env-variable
+
+#assume key location is stored in keyfile variable
+
+keyfile="firestore_service_acc.key.json"
+keypath="/tmp/keys/${keyfile}"
+
+docker run $2 \
+    -v ${PWD}/${keyfile}:${keypath}:ro \
+    --env GOOGLE_APPLICATION_CREDENTIALS=${keypath} \
+    $1

@@ -2,3 +2,5 @@ dockerfile
 .dockerignore
 docker_run
 *.key.json
+bin/
+__debug_bin

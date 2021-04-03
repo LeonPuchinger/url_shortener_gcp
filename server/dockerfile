@@ -4,4 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-CMD [ "go", "run", "." ]
+RUN go get
+
+RUN go build .
+
+CMD [ "./server" ]

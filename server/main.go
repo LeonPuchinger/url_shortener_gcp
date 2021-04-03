@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"cloud.google.com/go/firestore"
 )
+
+const Port = ":8080"
 
 func main() {
 	projectId := "url-shortener-308812"
@@ -18,12 +21,17 @@ func main() {
 		return
 	}
 
-	url, err := getUrl(ctx, client, "0") //example query
-	if err != nil {
-		fmt.Printf("ERROR: %s\n", err)
-		return
-	}
-	fmt.Println(url)
+	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
+		key := r.URL.Path[len("/get/"):]
+		url, err := getUrl(ctx, client, key)
+		if err != nil {
+			w.WriteHeader(404)
+			fmt.Fprint(w, err.Error())
+			return
+		}
+		fmt.Fprint(w, url)
+	})
+	http.ListenAndServe(Port, nil)
 }
 
 // Queries url from firestore database by key.

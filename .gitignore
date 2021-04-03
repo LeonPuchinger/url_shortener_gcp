@@ -1,2 +1,4 @@
 .vscode/
 *.key.json
+bin/
+__debug_bin

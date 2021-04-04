@@ -4,39 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"cloud.google.com/go/firestore"
 )
 
-const Port = ":8080"
+const ProjectId = "url-shortener-308812"
 
-func main() {
-	projectId := "url-shortener-308812"
-	ctx := context.Background()
-	client, err := firestore.NewClient(ctx, projectId)
+// Opens a new firestore client.
+// This usually fails if there is invalid or no authentication provided
+func InitClient(ctx context.Context) (*firestore.Client, error) {
+	client, err := firestore.NewClient(ctx, ProjectId)
 	if err != nil {
-		fmt.Println("ERROR: could not open client")
-		fmt.Println(err)
-		return
+		return nil, errors.New("could not open firestore client")
 	}
-
-	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
-		key := r.URL.Path[len("/get/"):]
-		url, err := getUrl(ctx, client, key)
-		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, err.Error())
-			return
-		}
-		fmt.Fprint(w, url)
-	})
-	http.ListenAndServe(Port, nil)
+	return client, nil
 }
 
 // Queries url from firestore database by key.
 // Returns the url string or an error if the url could not be found with the provided key
-func getUrl(ctx context.Context, client *firestore.Client, key string) (string, error) {
+func GetUrl(ctx context.Context, client *firestore.Client, key string) (string, error) {
 	query := client.Collection("urls").Where("key", "==", key)
 	doc, err := query.Documents(ctx).Next()
 	if err != nil {

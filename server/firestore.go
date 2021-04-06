@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 )
@@ -37,4 +38,38 @@ func GetUrl(ctx context.Context, client *firestore.Client, key string) (string, 
 		return "", errors.New("could not get url from queried document")
 	}
 	return url.Url, nil
+}
+
+// Increments a key by one. A key consists of multiple characters out of <0-9A-Za-z> 
+// with 0 being the lowest and z the highest individual char.
+func incrementKey(key string) string {
+	len := len(key)
+	if len == 0 {
+		return "0"
+	}
+	builder := strings.Builder{}
+	carry := true
+	for indx := 0; indx < len; indx++ {
+		char := key[indx]
+		if carry {
+			if char == '9' {
+				builder.WriteRune('A')
+				carry = false
+			} else if char == 'Z' {
+				builder.WriteRune('a')
+				carry = false
+			} else if char == 'z' {
+				builder.WriteRune('0')
+			} else {
+				builder.WriteRune(rune(char + 1))
+				carry = false
+			}
+			continue
+		}
+		builder.WriteByte(char)
+	}
+	if carry {
+		builder.WriteRune('1')
+	}
+	return builder.String()
 }

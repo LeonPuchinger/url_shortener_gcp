@@ -73,3 +73,42 @@ func incrementKey(key string) string {
 	}
 	return builder.String()
 }
+
+// Increments the stats counter in the firestore database by one.
+// Returns the new counter or an error if the transaction fails.
+func incrementCounter(ctx context.Context, client *firestore.Client) (string, error) {
+	statsRef := client.Collection("urls").Doc("--stats--")
+	type Counter struct {
+		Counter string `firestore:"counter"`
+	}
+	var newKey string
+
+	err := client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		stats, err := tx.Get(statsRef)
+		if err != nil {
+			return errors.New("could not get --stats-- ref")
+		}
+		var counter Counter
+		err = stats.DataTo(&counter)
+		if err != nil || counter.Counter == "" {
+			return errors.New("could not get counter from queried document")
+		}
+		newKey = incrementKey(counter.Counter)
+		fmt.Print(newKey)
+		err = tx.Update(statsRef, []firestore.Update{
+			{
+				Path:  "counter",
+				Value: newKey,
+			},
+		})
+		if err != nil {
+			return errors.New("could not update counter to new key")
+		}
+		return nil
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("could not run transaction: %s", err.Error())
+	}
+	return newKey, nil
+}

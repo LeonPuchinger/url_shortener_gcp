@@ -50,5 +50,8 @@ func main() {
 			w.WriteHeader(405)
 		}
 	})
-	http.ListenAndServe(Port, nil)
+	err = http.ListenAndServe(Port, nil)
+	if err != nil {
+		fmt.Printf("could not open http server: %s\n", err.Error())
+	}
 }

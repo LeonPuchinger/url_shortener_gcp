@@ -40,7 +40,7 @@ func GetUrl(ctx context.Context, client *firestore.Client, key string) (string, 
 	return url.Url, nil
 }
 
-// Increments a key by one. A key consists of multiple characters out of <0-9A-Za-z> 
+// Increments a key by one. A key consists of multiple characters out of <0-9A-Za-z>
 // with 0 being the lowest and z the highest individual char.
 func incrementKey(key string) string {
 	len := len(key)
@@ -94,7 +94,6 @@ func incrementCounter(ctx context.Context, client *firestore.Client) (string, er
 			return errors.New("could not get counter from queried document")
 		}
 		newKey = incrementKey(counter.Counter)
-		fmt.Print(newKey)
 		err = tx.Update(statsRef, []firestore.Update{
 			{
 				Path:  "counter",
@@ -111,4 +110,20 @@ func incrementCounter(ctx context.Context, client *firestore.Client) (string, er
 		return "", fmt.Errorf("could not run transaction: %s", err.Error())
 	}
 	return newKey, nil
+}
+
+// Adds a new url to the firestore database with a newly generated key.
+func AddUrl(ctx context.Context, client *firestore.Client, url string) (string, error) {
+	key, err := incrementCounter(ctx, client)
+	if err != nil {
+		return "", err
+	}
+	_, _, err = client.Collection("urls").Add(ctx, map[string]string{
+		"key": key,
+		"url": url,
+	})
+	if err != nil {
+		return "", errors.New("could not add url to database")
+	}
+	return key, nil
 }

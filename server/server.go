@@ -31,7 +31,7 @@ func main() {
 			w.WriteHeader(405)
 		}
 	})
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			url := r.FormValue("url")
 			if url == "" {

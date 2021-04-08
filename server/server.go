@@ -39,12 +39,13 @@ func main() {
 				fmt.Fprint(w, "url form parameter missing or empty")
 				return
 			}
-			_, err := AddUrl(ctx, client, url)
+			key, err := AddUrl(ctx, client, url)
 			if err != nil {
 				w.WriteHeader(500)
 				fmt.Fprint(w, err.Error())
 				return
 			}
+			fmt.Fprint(w, key)
 		} else if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.WriteHeader(405)
 		}

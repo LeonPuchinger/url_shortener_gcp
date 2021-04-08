@@ -18,14 +18,18 @@ func main() {
 	}
 
 	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
-		key := r.URL.Path[len("/get/"):]
-		url, err := GetUrl(ctx, client, key)
-		if err != nil {
-			w.WriteHeader(404)
-			fmt.Fprint(w, err.Error())
-			return
+		if r.Method == http.MethodGet {
+			key := r.URL.Path[len("/get/"):]
+			url, err := GetUrl(ctx, client, key)
+			if err != nil {
+				w.WriteHeader(404)
+				fmt.Fprint(w, err.Error())
+				return
+			}
+			fmt.Fprint(w, url)
+		} else if r.Method != http.MethodGet {
+			w.WriteHeader(405)
 		}
-		fmt.Fprint(w, url)
 	})
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
@@ -41,6 +45,8 @@ func main() {
 				fmt.Fprint(w, err.Error())
 				return
 			}
+		} else if r.Method != http.MethodGet && r.Method != http.MethodHead {
+			w.WriteHeader(405)
 		}
 	})
 	http.ListenAndServe(Port, nil)

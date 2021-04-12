@@ -17,7 +17,12 @@ func main() {
 		return
 	}
 
+	allowCORS := func(w *http.ResponseWriter) {
+		(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	}
+
 	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
+		allowCORS(&w)
 		if r.Method == http.MethodGet {
 			key := r.URL.Path[len("/get/"):]
 			url, err := GetUrl(ctx, client, key)
@@ -32,6 +37,7 @@ func main() {
 		}
 	})
 	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
+		allowCORS(&w)
 		if r.Method == http.MethodPost {
 			url := r.FormValue("url")
 			if url == "" {

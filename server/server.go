@@ -21,6 +21,10 @@ func main() {
 		(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	}
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		allowCORS(&w)
+		w.WriteHeader(404)
+	})
 	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
 		allowCORS(&w)
 		if r.Method == http.MethodGet {
@@ -32,7 +36,7 @@ func main() {
 				return
 			}
 			fmt.Fprint(w, url)
-		} else if r.Method != http.MethodGet {
+		} else {
 			w.WriteHeader(405)
 		}
 	})
@@ -52,7 +56,7 @@ func main() {
 				return
 			}
 			fmt.Fprint(w, key)
-		} else if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		} else {
 			w.WriteHeader(405)
 		}
 	})

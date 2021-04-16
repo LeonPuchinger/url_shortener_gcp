@@ -2,11 +2,38 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 const Port = ":8080"
+
+//allow CORS from any origin
+func allowCORS(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func setContentTypeJSON(w *http.ResponseWriter) {
+	(*w).Header().Set("Content-Type", "application/json")
+}
+
+//encode a map as json and serves it with a status-code
+type jsonHandler func(http.ResponseWriter, *http.Request) (int, map[string]string)
+
+func (handler jsonHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	allowCORS(&w)
+	setContentTypeJSON(&w)
+	status, body := handler(w, r)
+	response, err := json.Marshal(body)
+	if err != nil {
+		w.WriteHeader(500)
+		json.NewEncoder(w).Encode(map[string]string{"error": "internal error"})
+		return
+	}
+	w.WriteHeader(status)
+	w.Write(response)
+}
 
 // Open firestore client and setup API routes.
 func main() {
@@ -17,49 +44,41 @@ func main() {
 		return
 	}
 
-	allowCORS := func(w *http.ResponseWriter) {
-		(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	}
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		allowCORS(&w)
 		w.WriteHeader(404)
 	})
-	http.HandleFunc("/get/", func(w http.ResponseWriter, r *http.Request) {
-		allowCORS(&w)
+	http.Handle("/get/", jsonHandler(func(w http.ResponseWriter, r *http.Request) (int, map[string]string) {
 		if r.Method == http.MethodGet {
 			key := r.URL.Path[len("/get/"):]
 			url, err := GetUrl(ctx, client, key)
 			if err != nil {
-				w.WriteHeader(404)
-				fmt.Fprint(w, err.Error())
-				return
+				return 404, map[string]string{"error": "could not get url for this key"}
 			}
-			fmt.Fprint(w, url)
-		} else {
-			w.WriteHeader(405)
+			return 200, map[string]string{
+				"key": key,
+				"url": url,
+			}
 		}
-	})
-	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
-		allowCORS(&w)
+		return 405, map[string]string{"error": "method not allowed"}
+	}))
+	http.Handle("/add", jsonHandler(func(w http.ResponseWriter, r *http.Request) (int, map[string]string) {
 		if r.Method == http.MethodPost {
 			url := r.FormValue("url")
 			if url == "" {
-				w.WriteHeader(400)
-				fmt.Fprint(w, "url form parameter missing or empty")
-				return
+				return 400, map[string]string{"error": "url form parameter missing or empty"}
 			}
 			key, err := AddUrl(ctx, client, url)
 			if err != nil {
-				w.WriteHeader(500)
-				fmt.Fprint(w, err.Error())
-				return
+				return 500, map[string]string{"error": "unable to add url"}
 			}
-			fmt.Fprint(w, key)
-		} else {
-			w.WriteHeader(405)
+			return 200, map[string]string{
+				"key": key,
+				"url": url,
+			}
 		}
-	})
+		return 405, map[string]string{"error": "method not allowed"}
+	}))
 	err = http.ListenAndServe(Port, nil)
 	if err != nil {
 		fmt.Printf("could not open http server: %s\n", err.Error())

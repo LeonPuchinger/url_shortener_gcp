@@ -1,0 +1,38 @@
+steps:
+  # update static website (client)
+  - name: "gcr.io/cloud-builders/gsutil"
+    args: ["-m", "rsync", "-r", "-c", "-d", "./client", "gs://static-client"]
+  # pull latest server image for caching
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["pull", "gcr.io/url-shortener-308812/api_server"]
+  # build server image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/url-shortener-308812/api_server",
+        "--cache-from",
+        "gcr.io/url-shortener-308812/api_server",
+        "server/",
+      ]
+  # push server image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/url-shortener-308812/api_server"]
+  # deploy server image to cloud run
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "api_server",
+        "--image",
+        "gcr.io/url-shortener-308812/api_server",
+        "--region",
+        "us-east1",
+        "--platform",
+        "managed",
+      ]
+
+images:
+  - gcr.io/url-shortener-308812/api_server

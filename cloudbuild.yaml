@@ -36,3 +36,5 @@ steps:
 
 images:
   - gcr.io/url-shortener-308812/api_server
+
+timeout: 300s

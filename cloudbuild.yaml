@@ -25,7 +25,7 @@ steps:
       [
         "run",
         "deploy",
-        "api_server",
+        "api-server",
         "--image",
         "gcr.io/url-shortener-308812/api_server",
         "--region",

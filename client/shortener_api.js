@@ -34,7 +34,8 @@ async function shorten() {
         display_shortened(hostname(), result["key"], result["url"])
     } catch (error) {
         var msg
-        if (error == undefined || error.responseJSON["error"] == undefined || error.responseJSON["error"] == "") {
+        if (error == undefined || error.responseJSON == undefined ||
+            error.responseJSON["error"] == undefined || error.responseJSON["error"] == "") {
             msg = "Error: unable to shorten url"
         } else {
             msg = `Error: ${error.responseJSON["error"]}`

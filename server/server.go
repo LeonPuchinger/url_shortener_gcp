@@ -8,6 +8,7 @@ import (
 )
 
 const Port = ":8080"
+const ErrorPage = "https://storage.googleapis.com/static-client/error.html"
 
 //allow CORS from any origin
 func allowCORS(w *http.ResponseWriter) {
@@ -55,7 +56,7 @@ func main() {
 			key := r.URL.Path[len("/"):]
 			url, err := GetUrl(ctx, client, key)
 			if err != nil {
-				http.Redirect(w, r, "https://www.google.com/error", http.StatusFound) //using google's error page for now
+				http.Redirect(w, r, ErrorPage, http.StatusFound)
 				return
 			}
 			http.Redirect(w, r, url, http.StatusFound)

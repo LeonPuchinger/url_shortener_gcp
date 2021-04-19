@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080"; //just for testing
+const API_URL = "https://api-server-3ucl2t344q-ue.a.run.app";
 
 function hostname() {
     return window.location.hostname

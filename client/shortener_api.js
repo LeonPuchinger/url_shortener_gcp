@@ -1,12 +1,14 @@
 const API_URL = "https://api-server-3ucl2t344q-ue.a.run.app";
 
 function hostname() {
-    return window.location.hostname
+    // only needed if client is hosted under same domain as api/server backend
+    //return window.location.hostname
+    return API_URL
 }
 
 function display_shortened(base, key, url) {
     var element = `<li class="list-group-item list-group-item-info">
-        <a href="http://${base}/${key}" class="alert-link" style="display: block">${base}/${key}</a>
+        <a href="${base}/${key}" class="alert-link" style="display: block">${base}/${key}</a>
         <a href="${url}" class="link-secondary">${url}</a>
     </li>
     `

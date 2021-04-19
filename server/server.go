@@ -51,7 +51,17 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		allowCORS(&w)
-		w.WriteHeader(404)
+		if r.Method == http.MethodGet {
+			key := r.URL.Path[len("/"):]
+			url, err := GetUrl(ctx, client, key)
+			if err != nil {
+				http.Redirect(w, r, "https://www.google.com/error", http.StatusFound) //using google's error page for now
+				return
+			}
+			http.Redirect(w, r, url, http.StatusFound)
+			return
+		}
+		w.WriteHeader(405)
 	})
 	http.Handle("/get/", jsonHandler(func(w http.ResponseWriter, r *http.Request) (int, map[string]string) {
 		if r.Method == http.MethodGet {

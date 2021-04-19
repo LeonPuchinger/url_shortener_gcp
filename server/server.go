@@ -44,6 +44,11 @@ func main() {
 		return
 	}
 
+	urlReachable := func(url string) bool {
+		_, err := http.Get(url)
+		return err == nil
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		allowCORS(&w)
 		w.WriteHeader(404)
@@ -67,6 +72,9 @@ func main() {
 			url := r.FormValue("url")
 			if url == "" {
 				return 400, map[string]string{"error": "url form parameter missing or empty"}
+			}
+			if !urlReachable(url) {
+				return 400, map[string]string{"error": "url is not reachable"}
 			}
 			key, err := AddUrl(ctx, client, url)
 			if err != nil {

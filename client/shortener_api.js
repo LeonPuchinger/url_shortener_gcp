@@ -13,9 +13,9 @@ function display_shortened(base, key, url) {
     $("#url-list").prepend(element)
 }
 
-function display_error(url) {
+function display_error(url, error) {
     var element = `<li class="list-group-item list-group-item-danger">
-        <p>Error: Unable to shorten url</p>
+        <p>${error}</p>
         <a href="${url}" class="link-secondary">${url}</a>
     </li>
     `
@@ -32,7 +32,13 @@ async function shorten() {
             dataType: "json",
         });
         display_shortened(hostname(), result["key"], result["url"])
-    } catch (_) {
-        display_error(url)
+    } catch (error) {
+        var msg
+        if (error == undefined || error.responseJSON["error"] == undefined || error.responseJSON["error"] == "") {
+            msg = "Error: unable to shorten url"
+        } else {
+            msg = `Error: ${error.responseJSON["error"]}`
+        }
+        display_error(url, msg)
     }
 }

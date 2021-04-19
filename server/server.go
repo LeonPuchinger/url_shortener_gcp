@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 const Port = ":8080"
@@ -83,6 +84,9 @@ func main() {
 			url := r.FormValue("url")
 			if url == "" {
 				return 400, map[string]string{"error": "url form parameter missing or empty"}
+			}
+			if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+				url = "http://" + url
 			}
 			if !urlReachable(url) {
 				return 400, map[string]string{"error": "url is not reachable"}
